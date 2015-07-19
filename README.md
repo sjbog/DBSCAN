@@ -73,8 +73,10 @@ We build neighborhood map (array containing concurrent non-blocking queues of de
                        0    1    2    3    4    5    6    7    8    9
 Sorted data points: [ "0", "8", "2", "9", "3", "5", "6", "1", "4", "7" ]
 
-Point "0": 2.0, sees 3 points in range dimensionValue + eps - "8": 2.0, "2": 3.0, "9": 3.0 (e.g. dimensionValue = 2.0, 2.0 + 2.0 = 4.0 - every point with X dimension value above 4.0 is definitely not reachable)
+Point "0": 2.0, sees 3 points in range dimensionValue + eps - "8": 2.0, "2": 3.0, "9": 3.0
+(e.g. 2.0 + 2.0 =4 - every point with X dimension value above 4 is definitely not reachable)
 Then we check if they are reachable with Euclidean distance and add to neighbors.
+Point "9": [3.0, 7.0] isn't density reachable to point "0": [2.0, 4.0]
 
 Neighborhood map:
 0: [ 1, 2 ]
