@@ -2,7 +2,7 @@ package dbscan;
 
 import java.util.Arrays;
 
-abstract class ClusterablePoint {
+public abstract class ClusterablePoint {
 	public double[] point;
 
 	public double[] getPoint() {

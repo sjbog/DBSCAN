@@ -7,4 +7,8 @@ public class NamedDoublePoint extends ClusterablePoint {
 		this.name	= name;
 		this.point	= point;
 	}
+
+	public String toString() {
+		return String.format( "\"%s\": %s", name, super.toString() );
+	}
 }

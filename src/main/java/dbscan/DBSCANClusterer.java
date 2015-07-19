@@ -10,6 +10,7 @@ import java.util.stream.IntStream;
 public class DBSCANClusterer< T extends ClusterablePoint > {
 	public double eps, eps2;
 	public int minPts, numDimensions = 0, sortDimensionIndex = 0;
+	public boolean autoSelectDimension = true;
 
 	public DBSCANClusterer( final double eps, final int minPts ) {
 		this.eps	= eps;
@@ -27,9 +28,12 @@ public class DBSCANClusterer< T extends ClusterablePoint > {
 			throw new NullPointerException( "Empty clustering data" );
 
 		int dataSize = data.size( );
+		this.numDimensions = data.iterator().next().getPoint().length;
+
+		if ( this.autoSelectDimension )
+			this.sortDimensionIndex = predictDimensionByMaxVariance( data );
 
 		ArrayList< T > dataSortedByDimension = data.stream( ).parallel( ).sorted( Comparator.comparing( ( T p ) -> p.getPoint( )[ sortDimensionIndex ] ) ).collect( Collectors.toCollection( ArrayList::new ) );
-		this.numDimensions = dataSortedByDimension.iterator().next().getPoint().length;
 
 		final LinkedList< List< T > > clusters = new LinkedList<>( );
 		final boolean[] visitedMap = new boolean[ dataSize ];
@@ -125,5 +129,43 @@ public class DBSCANClusterer< T extends ClusterablePoint > {
 				.forEach( fn );
 
 		return result;
+	}
+
+	/**
+	 * Calculate variance for each dimension (in parallel), returns dimension index with max variance
+	 */
+	public int predictDimensionByMaxVariance( final Collection< T > data ) {
+		return ( int ) IntStream.range( 0, numDimensions )
+				.parallel()
+				.mapToObj( dim -> new Object[]{ dim, variance( data, dim ) } )
+				.reduce( ( a, b ) -> ( double ) a[ 1 ] > ( double ) b[ 1 ] ? a : b )
+				.get()[ 0 ];
+	}
+
+	public static double variance( double[] data ) {
+		double avg = 0.0, sum = 0.0, delta;
+		for( int i = 0, size = data.length; i < size; i++ ) {
+			delta = data[i] - avg;
+			avg += delta / ( i+1 );
+			sum += delta * ( data[i] - avg );
+		}
+		if ( data.length < 2 )
+			return 0.0;
+		return sum / ( data.length - 1 );
+	}
+
+	public double variance( final Collection< T > data, final int dimension ) {
+		double avg = 0.0, sum = 0.0, delta, v;
+		int i = 0;
+		for( final T point : data ) {
+			v = point.getPoint()[ dimension ];
+			delta = v - avg;
+			avg += delta / ++i;
+			sum += delta * ( v - avg );
+		}
+		int size = data.size( );
+		if ( size < 2 )
+			return 0.0;
+		return sum / ( size - 1 );
 	}
 }
